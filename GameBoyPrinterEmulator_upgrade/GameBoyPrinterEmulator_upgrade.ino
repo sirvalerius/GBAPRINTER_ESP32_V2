@@ -66,7 +66,17 @@ WebUSB WebUSBSerial(1, "herrzatacke.github.io/gb-printer-web/#/webusb");
 //
 
 // clang-format off
-#ifdef ESP8266
+#ifdef ESP32
+// Pin Setup for ESP32
+//                  | Arduino Pin | Gameboy Link Pin  |
+#define GBP_VCC_PIN               // Pin 1            : 5.0V (Unused)
+#define GBP_SO_PIN        12      // Pin 2            // GPIO12 (Scegli pin adatti)
+#define GBP_SI_PIN        13      // Pin 3            // GPIO13
+#define GBP_SD_PIN                // Pin 4            : Serial Data (Unused)
+#define GBP_SC_PIN        14      // Pin 5            // GPIO14 (Deve essere un pin con interrupt)
+#define GBP_GND_PIN               // Pin 6            : GND
+#define LED_STATUS_PIN    2       // LED interno (controlla la tua scheda!)
+#elif defined(ESP8266)
 // Pin Setup for ESP8266 Devices
 //                  | Arduino Pin | Gameboy Link Pin  |
 #define GBP_VCC_PIN               // Pin 1            : 5.0V (Unused)
@@ -142,7 +152,9 @@ const char *gbpCommand_toStr(int val)
   Interrupt Service Routine
 *******************************************************************************/
 
-#ifdef ESP8266
+#ifdef ESP32
+void IRAM_ATTR serialClock_ISR(void)
+#elif defined(ESP8266)
 void ICACHE_RAM_ATTR serialClock_ISR(void)
 #else
 void serialClock_ISR(void)
@@ -164,6 +176,7 @@ void serialClock_ISR(void)
 
 void setup(void)
 {
+  delay(1000);  // Ritardo per stabilizzare la seriale USB
   // Config Serial
   // Has to be fast or it will not transfer the image fast enough to the computer
   Serial.begin(115200);
