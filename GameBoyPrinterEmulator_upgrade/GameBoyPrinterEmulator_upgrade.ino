@@ -184,7 +184,7 @@ void setup(void)
   // Wait for Serial to be ready
   while (!Serial) { ; }
 
-  Connect_to_printer();  //makes an attempt to switch in printer mode
+  //Connect_to_printer();  //makes an attempt to switch in printer mode
 
   /* Pins from gameboy link cable */
   pinMode(GBP_SC_PIN, INPUT);

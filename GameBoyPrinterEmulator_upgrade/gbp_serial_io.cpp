@@ -201,7 +201,7 @@ bool gbp_serial_io_timeout_handler(uint32_t elapsed_ms)
     return true;
   }
 #endif
-  if (gpb_pktIO.timeout_ms > 5)
+  if (gpb_pktIO.timeout_ms > 0)
   {
     gpb_pktIO.timeout_ms = (gpb_pktIO.timeout_ms > elapsed_ms) ? (gpb_pktIO.timeout_ms - elapsed_ms) : 0;
     if (gpb_pktIO.timeout_ms == 0)
