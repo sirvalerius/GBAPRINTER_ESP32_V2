@@ -67,6 +67,7 @@ WebUSB WebUSBSerial(1, "herrzatacke.github.io/gb-printer-web/#/webusb");
 //  \_5__3__1_/   (at cable)
 //
 
+
 // clang-format off
 #ifdef ESP32
   // Pin Setup per ESP32 (Gameboy Printer)
@@ -117,6 +118,17 @@ WebUSB WebUSBSerial(1, "herrzatacke.github.io/gb-printer-web/#/webusb");
   #define TFT_CS_PIN    10
   #define TFT_DC_PIN    8
   #define TFT_RST_PIN   9
+
+  /*Schema collegamento Schermo tft */
+//  LED (Retroilluminazione)  ->	3.3V (o 5V se supportato)	Alimentazione per la retroilluminazione
+//  SCK (Clock SPI)	          ->  D13 (SPI SCK)	Clock SPI (Serial Clock)
+//  SDA (MOSI - Data SPI)	    ->  D11 (SPI MOSI)	Dati inviati ad alta velocità
+//  A0 (DC - Data/Command)	  ->  D8	Differenzia dati da comandi
+//  RESET	                    ->  D9	Reset hardware (necessario)
+//  CS (Chip Select)	        ->  D10	Selezione del dispositivo SPI
+//  GND	                      ->  GND	Massa (collegamento a terra)
+//  VCC	                      ->  3.3V	⚠ Molti display sono a 3.3V! (Alcuni supportano 5V)
+
 #endif
 
 // Inizializzazione oggetto display TFT
