@@ -55,8 +55,10 @@ WebUSB WebUSBSerial(1, "herrzatacke.github.io/gb-printer-web/#/webusb");
 #include "gbp_pkt.h"
 #endif
 
-
-
+// Includo le librerie per il display TFT SPI 1.8"
+#include <SPI.h>
+#include <Adafruit_GFX.h>
+#include <Adafruit_ST7735.h>
 
 /* Gameboy Link Cable Mapping to Arduino Pin */
 // Note: Serial Clock Pin must be attached to an interrupt pin of the arduino
@@ -67,35 +69,63 @@ WebUSB WebUSBSerial(1, "herrzatacke.github.io/gb-printer-web/#/webusb");
 
 // clang-format off
 #ifdef ESP32
-// Pin Setup for ESP32
-//                  | Arduino Pin | Gameboy Link Pin  |
-#define GBP_VCC_PIN               // Pin 1            : 5.0V (Unused)
-#define GBP_SO_PIN        12      // Pin 2            // GPIO12 (Scegli pin adatti)
-#define GBP_SI_PIN        13      // Pin 3            // GPIO13
-#define GBP_SD_PIN                // Pin 4            : Serial Data (Unused)
-#define GBP_SC_PIN        14      // Pin 5            // GPIO14 (Deve essere un pin con interrupt)
-#define GBP_GND_PIN               // Pin 6            : GND
-#define LED_STATUS_PIN    2       // LED interno (controlla la tua scheda!)
+  // Pin Setup per ESP32 (Gameboy Printer)
+  //                  | Arduino Pin | Gameboy Link Pin  |
+  #define GBP_VCC_PIN               // Pin 1            : 5.0V (Unused)
+  #define GBP_SO_PIN        12      // Pin 2            // GPIO12
+  #define GBP_SI_PIN        13      // Pin 3            // GPIO13
+  #define GBP_SD_PIN                // Pin 4            : Serial Data (Unused)
+  #define GBP_SC_PIN        14      // Pin 5            // GPIO14 (deve essere un pin con interrupt)
+  #define GBP_GND_PIN               // Pin 6            : GND
+  #define LED_STATUS_PIN    2       // LED interno (controlla la tua scheda!)
+  
+  // Pin per il Display TFT 1.8" (assicurarsi di non sovrapporre con quelli del GBP)
+  #define TFT_CS_PIN    15
+  #define TFT_DC_PIN    16
+  #define TFT_RST_PIN   17
+
 #elif defined(ESP8266)
-// Pin Setup for ESP8266 Devices
-//                  | Arduino Pin | Gameboy Link Pin  |
-#define GBP_VCC_PIN               // Pin 1            : 5.0V (Unused)
-#define GBP_SO_PIN       13       // Pin 2            : ESP-pin 7 MOSI (Serial OUTPUT) -> Arduino 13
-#define GBP_SI_PIN       12       // Pin 3            : ESP-pin 6 MISO (Serial INPUT)  -> Arduino 12
-#define GBP_SD_PIN                // Pin 4            : Serial Data  (Unused)
-#define GBP_SC_PIN       14       // Pin 5            : ESP-pin 5 CLK  (Serial Clock)  -> Arduino 14
-#define GBP_GND_PIN               // Pin 6            : GND (Attach to GND Pin)
-#define LED_STATUS_PIN    2       // Internal LED blink on packet reception
+  // Pin Setup per ESP8266 (Gameboy Printer)
+  //                  | Arduino Pin | Gameboy Link Pin  |
+  #define GBP_VCC_PIN               // Pin 1            : 5.0V (Unused)
+  #define GBP_SO_PIN       13       // Pin 2            : ESP-pin 7 MOSI (Serial OUTPUT)
+  #define GBP_SI_PIN       12       // Pin 3            : ESP-pin 6 MISO (Serial INPUT)
+  #define GBP_SD_PIN                // Pin 4            : Serial Data  (Unused)
+  #define GBP_SC_PIN       14       // Pin 5            : ESP-pin 5 CLK  (Serial Clock)
+  #define GBP_GND_PIN               // Pin 6            : GND (Attach to GND Pin)
+  #define LED_STATUS_PIN    2       // Internal LED blink on packet reception
+  
+  // Per l'ESP8266 l'hardware SPI usa i pin 12,13,14 (già usati dal GBP) -> uso Software SPI per il TFT
+  #define TFT_CS_PIN    15
+  #define TFT_DC_PIN    4
+  #define TFT_RST_PIN   5
+  #define TFT_SCLK_PIN  16
+  #define TFT_MOSI_PIN  0
+
 #else
-// Pin Setup for Arduinos
-//                  | Arduino Pin | Gameboy Link Pin  |
-#define GBP_VCC_PIN               // Pin 1            : 5.0V (Unused)
-#define GBP_SO_PIN        4       // Pin 2            : Serial OUTPUT
-#define GBP_SI_PIN        3       // Pin 3            : Serial INPUT
-#define GBP_SD_PIN                // Pin 4            : Serial Data  (Unused)
-#define GBP_SC_PIN        2       // Pin 5            : Serial Clock (Interrupt)
-#define GBP_GND_PIN               // Pin 6            : GND (Attach to GND Pin)
-#define LED_STATUS_PIN   13       // Internal LED blink on packet reception
+  // Pin Setup per Arduinos (Gameboy Printer)
+  //                  | Arduino Pin | Gameboy Link Pin  |
+  #define GBP_VCC_PIN               // Pin 1            : 5.0V (Unused)
+  #define GBP_SO_PIN        4       // Pin 2            : Serial OUTPUT
+  #define GBP_SI_PIN        3       // Pin 3            : Serial INPUT
+  #define GBP_SD_PIN                // Pin 4            : Serial Data  (Unused)
+  #define GBP_SC_PIN        2       // Pin 5            : Serial Clock (Interrupt)
+  #define GBP_GND_PIN               // Pin 6            : GND (Attach to GND Pin)
+  #define LED_STATUS_PIN   13       // Internal LED blink on packet reception
+  
+  // Pin per il Display TFT 1.8" (evitare conflitti: 2,3,4 già usati, 13 è LED)
+  #define TFT_CS_PIN    10
+  #define TFT_DC_PIN    8
+  #define TFT_RST_PIN   9
+#endif
+
+// Inizializzazione oggetto display TFT
+#ifdef ESP8266
+  // Costruttore per Software SPI
+  Adafruit_ST7735 tft = Adafruit_ST7735(TFT_CS_PIN, TFT_DC_PIN, TFT_MOSI_PIN, TFT_SCLK_PIN, TFT_RST_PIN);
+#else
+  // Per ESP32 e Arduino si usa l'hardware SPI
+  Adafruit_ST7735 tft = Adafruit_ST7735(TFT_CS_PIN, TFT_DC_PIN, TFT_RST_PIN);
 #endif
 // clang-format on
 
@@ -183,6 +213,16 @@ void setup(void)
 
   // Wait for Serial to be ready
   while (!Serial) { ; }
+
+  // Inizializzazione del display TFT
+  Serial.println("Inizializzazione del display TFT");
+  tft.initR(INITR_BLACKTAB);  // Inizializza il display (scegli il tab corretto per il tuo modello)
+  tft.fillScreen(ST77XX_BLACK);
+  tft.setTextColor(ST77XX_WHITE);
+  tft.setTextSize(2);
+  tft.setCursor(0, 0);
+  tft.setRotation(1);
+  tft.println("Hello World");
 
   //Connect_to_printer();  //makes an attempt to switch in printer mode
 
