@@ -72,12 +72,12 @@ WebUSB WebUSBSerial(1, "herrzatacke.github.io/gb-printer-web/#/webusb");
 #ifdef ESP32
   // Pin Setup per ESP32 (Gameboy Printer)
   //                  | Arduino Pin | Gameboy Link Pin  |
-  #define GBP_VCC_PIN               // Pin 1            : 5.0V (Unused)
-  #define GBP_SO_PIN        12      // Pin 2            // GPIO12
-  #define GBP_SI_PIN        13      // Pin 3            // GPIO13
+  #define GBP_VCC_PIN               // Pin 1            : White(5.0V) ->(Unused)
+  #define GBP_SO_PIN        12      // Pin 2            : Green       -> GPIO12
+  #define GBP_SI_PIN        13      // Pin 3            : Blue        -> GPIO13
   #define GBP_SD_PIN                // Pin 4            : Serial Data (Unused)
-  #define GBP_SC_PIN        14      // Pin 5            // GPIO14 (deve essere un pin con interrupt)
-  #define GBP_GND_PIN               // Pin 6            : GND
+  #define GBP_SC_PIN        14      // Pin 5            : Orange      -> GPIO14 (deve essere un pin con interrupt)
+  #define GBP_GND_PIN               // Pin 6            : Black       -> GND
   #define LED_STATUS_PIN    2       // LED interno (controlla la tua scheda!)
   
   // Pin per il Display TFT 1.8" (assicurarsi di non sovrapporre con quelli del GBP)
@@ -89,7 +89,7 @@ WebUSB WebUSBSerial(1, "herrzatacke.github.io/gb-printer-web/#/webusb");
   #define TFT_LED_PIN   27   // Led Backlight display 
 
   // Pin per la scheda SD
-  #define SD_CS_PIN 13
+  #define SD_CS_PIN     13   // Chip Select SD card Reader 
 
 #elif defined(ESP8266)
   // Pin Setup per ESP8266 (Gameboy Printer)
