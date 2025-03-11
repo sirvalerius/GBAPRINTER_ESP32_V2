@@ -81,9 +81,15 @@ WebUSB WebUSBSerial(1, "herrzatacke.github.io/gb-printer-web/#/webusb");
   #define LED_STATUS_PIN    2       // LED interno (controlla la tua scheda!)
   
   // Pin per il Display TFT 1.8" (assicurarsi di non sovrapporre con quelli del GBP)
-  #define TFT_CS_PIN    15
-  #define TFT_DC_PIN    16
-  #define TFT_RST_PIN   17
+  // Pin per il display ST7735
+  #define TFT_CS_PIN    5    // Chip Select del display
+  #define TFT_DC_PIN    4    // Data/Command
+  #define TFT_RST_PIN   15   // Reset del display
+
+  #define TFT_LED_PIN   27   // Led Backlight display 
+
+  // Pin per la scheda SD
+  #define SD_CS_PIN 13
 
 #elif defined(ESP8266)
   // Pin Setup per ESP8266 (Gameboy Printer)
@@ -234,6 +240,8 @@ void setup(void)
   tft.setTextSize(2);
   tft.setCursor(0, 0);
   tft.setRotation(1);
+  pinMode(27, OUTPUT);
+  digitalWrite(27, HIGH);
   tft.println("Hello World");
 
   //Connect_to_printer();  //makes an attempt to switch in printer mode
