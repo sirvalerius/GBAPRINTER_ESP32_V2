@@ -1,0 +1,130 @@
+This documents describes the hardware configuration stable, the components that ani configuration uses and how they are connected 
+
+Version: 1.0
+
+ESP32 Full:
+
+	Components:
+	- ESP32 DEVKIT VI TYPE C
+	- ST7735 1.8 inch Spi TFT Display 128 x 160 pixels
+	- TXB0104 
+	- Game Link Cable 
+	
+	
+	Schemas: 
+		ESP32 DEVKIT VI TYPE C (e32)
+			 _______________
+		EN	|				|	D23
+		VP	|				|	D22
+		VN	|				|	TX0
+		D34	|				|	RX0
+		D35	|				|	D21
+		D32	|				|	D19
+		D33	|				|	D18
+		D25	|				|	D5
+		D26	|				|	TX2
+		D27	|				|	RX2
+		D14	|				|	D4
+		D12	|				|	D2
+		D13	|				|	D15
+	 GND(sx)|				|	GND(dx)
+		VIN	|_______________|	3v3
+				  USB-c
+			  
+		ST7735 1.8 inch Spi TFT Display 128 x 160 pixels (st)
+			 _______________________________
+		LED	|								|	
+		SCK	|								|	
+		SDA	|								|	SD_SCK
+		A0	|		 ___________			|	SD_MISO
+	  RESET	|		|			\			|	SD_MOSI
+		CS	|		| SD_READER	|			|	SD_CS	
+		GND	|		|			|			|	
+		VCC	|_______|___________|___________|
+				
+		TXB0104 (txb)
+			 ___________
+		B4	|			|	A4
+		B3	|			|	A3
+		B2	|			|	A2
+		B1	|			|	A0
+		GND	|			|	GND
+		VCC	|___________|	3v3
+
+		Game Link Cable (glc)
+			  ___________
+			 |  6  4  2  |
+			  \_5__3__1_/   (at cable)
+				 |	 |
+				 |	 |
+				 |	 |
+				 |	  \
+				 |	  	- 	Pin 1: White(5.0V)
+				 |	  	-	Pin 2: Green
+				 |	  	- 	Pin 3: Blue
+				 |	  	-	Pin 4: Brown
+				 |	  	-	Pin 5: Orange
+				 \______-	Pin 6: Black(GND)	
+
+
+	Connection Tables:
+		ESP32 DEVKIT VI TYPE C (e32):
+			left side:
+				EN		-
+				VP		-
+				VN		-
+				D34		-
+				D35		-
+				D32		-
+				D33		-
+				D25		-
+				D26		-
+				D27		->	A4 (txb)
+				D14		->	A3 (txb)
+				D12		->	A2 (txb)
+				D13		->	A1 (txb)
+				GND(sx)	->	GND(txb)
+				VIN		-
+			
+			right side:
+				D23		-> 	SDA (tft), SD_MoSO (tft_sd) 
+				D22		-> 	LED (tft)
+				TX0		-
+				RX0		-
+				D21		-> 	SD_CS (tft_sd)
+				D19		-> 	SD_MISO (tft_sd)
+				D18		-> 	SCK (tft), SD_SCK (tft_sd)
+				D5		-> 	CS (tft) 
+				TX2		-
+				RX2		-
+				D4		-> 	A0 (tft) 
+				D2		-
+				D15		-> 	RESET (tft)
+				GND(dx)	-> 	GND (tft) 
+				3v3		-> 	VCC (tft), 3v3 (txb)
+		
+		ST7735 1.8 inch Spi TFT Display 128 x 160 pixels (st)		
+			tft side:
+				LED		->	D22 (e32)
+				SCK		->	D18 (e32)
+				SDA		->	D23 (e32)
+				A0		->	D4 (e32)
+				RESET	->	D15 (e32)
+				CS		->	D5 (e32)
+				GND		->	GND (e32)
+				VCC		->	3v3 (e32)
+				
+			sd side:
+				SD_SCK	->	D18 (e32)
+				SD_MISO	->	D19 (e32)
+				SD_MOSI	->	D23 (e32)
+				SD_CS	->	D21 (e32)
+			
+		TXB0104
+							 ___________			
+					 ->	B4	|	 -->	|	A4 
+			5:Orange ->	B3	|	 -->	|	A3	->	D14(e32)
+			2:Green	 ->	B2	|	 -->	|	A2	->	D12(e32)
+			3:Blue	 ->	B1	|	 -->	|	A1 	->	D13(e32)
+			6:Black  ->	GND	|	 		|	GND	->  GND(e32)
+			1:White	 ->	VCC	|___________|	3v3	->	3v3(e32)
