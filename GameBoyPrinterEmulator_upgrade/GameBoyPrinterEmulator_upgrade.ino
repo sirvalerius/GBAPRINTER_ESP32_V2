@@ -237,12 +237,11 @@ void setup(void)
   tft.initR(INITR_BLACKTAB);  // Inizializza il display (scegli il tab corretto per il tuo modello)
   tft.fillScreen(ST77XX_BLACK);
   tft.setTextColor(ST77XX_WHITE);
-  tft.setTextSize(2);
+  tft.setTextSize(1);
   tft.setCursor(0, 0);
   tft.setRotation(1);
   pinMode(TFT_LED_PIN, OUTPUT);
   digitalWrite(TFT_LED_PIN, HIGH);
-  tft.println("Hello World");
 
   //Connect_to_printer();  //makes an attempt to switch in printer mode
 
@@ -281,17 +280,30 @@ void setup(void)
   Serial.println(F("// Note: Each byte is from each GBP packet is from the gameboy"));
   Serial.println(F("//       except for the last two bytes which is from the printer"));
   Serial.println(F("// JS Raw Packet Decoder: https://mofosyne.github.io/arduino-gameboy-printer-emulator/GameBoyPrinterDecoderJS/gameboy_printer_js_raw_decoder.html"));
+  tft.println(F("// GAMEBOY PRINTER Packet Capture " VERSION_STRING));
+  tft.println(F("// Note: Each byte is from each GBP packet is from the gameboy"));
+  tft.println(F("//       except for the last two bytes which is from the printer"));
+  tft.println(F("// JS Raw Packet Decoder: https://mofosyne.github.io/arduino-gameboy-printer-emulator/GameBoyPrinterDecoderJS/gameboy_printer_js_raw_decoder.html"));
 #endif
 #ifdef GBP_FEATURE_PARSE_PACKET_MODE
   Serial.println(F("// GAMEBOY PRINTER Emulator " VERSION_STRING));
   Serial.println(F("// Note: Each hex encoded line is a gameboy tile"));
   Serial.println(F("// JS Decoder: https://mofosyne.github.io/arduino-gameboy-printer-emulator/GameBoyPrinterDecoderJS/gameboy_printer_js_decoder.html"));
+  tft.println(F("// GAMEBOY PRINTER Emulator " VERSION_STRING));
+  tft.println(F("// Note: Each hex encoded line is a gameboy tile"));
+  tft.println(F("// JS Decoder: https://mofosyne.github.io/arduino-gameboy-printer-emulator/GameBoyPrinterDecoderJS/gameboy_printer_js_decoder.html"));
 #endif
   Serial.println(F("// --- GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007 ---"));
   Serial.println(F("// This program comes with ABSOLUTELY NO WARRANTY;"));
   Serial.println(F("// This is free software, and you are welcome to redistribute it"));
   Serial.println(F("// under certain conditions. Refer to LICENSE file for detail."));
   Serial.println(F("// ---"));
+  tft.println(F("// --- GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007 ---"));
+  tft.println(F("// This program comes with ABSOLUTELY NO WARRANTY;"));
+  tft.println(F("// This is free software, and you are welcome to redistribute it"));
+  tft.println(F("// under certain conditions. Refer to LICENSE file for detail."));
+  tft.println(F("// ---"));
+  
 
   Serial.flush();
 }  // setup()
