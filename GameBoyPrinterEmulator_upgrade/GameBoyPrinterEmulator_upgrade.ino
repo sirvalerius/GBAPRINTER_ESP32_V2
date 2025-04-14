@@ -337,8 +337,8 @@ void loop()
       Serial.print(gbp_serial_io_dataBuff_max());
       Serial.println("B)");
       Serial.flush();
-      Serial.println("test outputBuffer:");
-      Serial.println(outputBuffer);
+      //Serial.println("test outputBuffer:");
+      //Serial.println(outputBuffer);
       digitalWrite(LED_STATUS_PIN, LOW);
 
       outputBuffer = "";
