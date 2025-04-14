@@ -224,7 +224,7 @@ void serialClock_ISR(void)
 
 void setup(void)
 {
-  delay(1000);  // Ritardo per stabilizzare la seriale USB
+  // delay(1000);  // Ritardo per stabilizzare la seriale USB
   // Config Serial
   // Has to be fast or it will not transfer the image fast enough to the computer
   Serial.begin(115200);
@@ -239,7 +239,7 @@ void setup(void)
   tft.setTextColor(ST77XX_WHITE);
   tft.setTextSize(1);
   tft.setCursor(0, 0);
-  tft.setRotation(1);
+  tft.setRotation(3);
   pinMode(TFT_LED_PIN, OUTPUT);
   digitalWrite(TFT_LED_PIN, HIGH);
 
