@@ -60,6 +60,8 @@ WebUSB WebUSBSerial(1, "herrzatacke.github.io/gb-printer-web/#/webusb");
 #include <Adafruit_GFX.h>
 #include <Adafruit_ST7735.h>
 
+#include <SPIFFS.h>
+
 /* Gameboy Link Cable Mapping to Arduino Pin */
 // Note: Serial Clock Pin must be attached to an interrupt pin of the arduino
 //  ___________
@@ -234,6 +236,10 @@ void setup(void)
   // Wait for Serial to be ready
   while (!Serial) { ; }
 
+  if (!SPIFFS.begin(true)) {
+    Serial.println("SPIFFS mount failed!");
+  }
+
   // Inizializzazione del display TFT
   Serial.println("Inizializzazione del display TFT");
   tft.initR(INITR_BLACKTAB);  // Inizializza il display (scegli il tab corretto per il tuo modello)
@@ -305,9 +311,11 @@ void setup(void)
   tft.println(F("// This is free software, and you are welcome to redistribute it"));
   tft.println(F("// under certain conditions. Refer to LICENSE file for detail."));
   tft.println(F("// ---"));
-  
-
   Serial.flush();
+
+  delay(1000);
+
+  drawBMP("/main_screen.bmp", 0, 0);
 }  // setup()
 
 void loop()
@@ -648,4 +656,100 @@ void myPrintln(char c) {
   Serial.println(c);
   outputBuffer += c;
   outputBuffer += "\n";
+}
+
+// Funzioni di utilità per la lettura in little-endian
+uint16_t read16(File &f) {
+  uint16_t result;
+  result  = f.read();         // byte meno significativo
+  result |= f.read() << 8;     // byte più significativo
+  return result;
+}
+
+uint32_t read32(File &f) {
+  uint32_t result;
+  result  = f.read();         // byte meno significativo
+  result |= f.read() << 8;
+  result |= f.read() << 16;
+  result |= f.read() << 24;   // byte più significativo
+  return result;
+}
+
+// Funzione per disegnare un BMP da SPIFFS sul display
+void drawBMP(const char *filename, int x, int y) {
+  // Apri il file dal file system SPIFFS
+  File bmpFile = SPIFFS.open(filename, "r");
+  if (!bmpFile) {
+    Serial.println("File BMP non trovato!");
+    return;
+  }
+  
+  // Controlla l'intestazione BMP: i primi due byte devono essere 'B' 'M'
+  if (read16(bmpFile) != 0x4D42) {  // 0x4D42 = 'BM'
+    Serial.println("Non è un file BMP!");
+    bmpFile.close();
+    return;
+  }
+  
+  // Salta: dimensione del file e due campi riservati
+  uint32_t fileSize      = read32(bmpFile);
+  read32(bmpFile);  // campo riservato
+  // Ottieni l'offset dove inizia il pixel array
+  uint32_t bmpImageOffset = read32(bmpFile);
+  
+  // Leggi l'intestazione DIB (BITMAPINFOHEADER)
+  uint32_t headerSize = read32(bmpFile);
+  int32_t bmpWidth    = read32(bmpFile);
+  int32_t bmpHeight   = read32(bmpFile);
+  uint16_t planes     = read16(bmpFile);
+  uint16_t bitDepth   = read16(bmpFile);
+  uint32_t compression = read32(bmpFile);
+  
+  if (compression != 0 || bitDepth != 24) {
+    Serial.println("File BMP non supportato! (richiesto: 24 bit non compresso)");
+    bmpFile.close();
+    return;
+  }
+  
+  // Spostati all'inizio dei dati immagine
+  bmpFile.seek(bmpImageOffset);
+  
+  // Calcola la dimensione di ogni riga (le righe sono allineate a 4 byte)
+  uint32_t rowSize = (bmpWidth * 3 + 3) & ~3;
+  
+  // Determina se l'immagine è "flip" (tipica per BMP, ovvero bottom-up)
+  bool flip = true;
+  if (bmpHeight < 0) {
+    bmpHeight = -bmpHeight;
+    flip = false;
+  }
+  
+  // Itera su ciascuna riga dell'immagine
+  for (int row = 0; row < bmpHeight; row++) {
+    // Calcola la posizione di partenza per questa riga all'interno del file
+    uint32_t pos;
+    if (flip) {
+      pos = bmpImageOffset + (bmpHeight - 1 - row) * rowSize;
+    } else {
+      pos = bmpImageOffset + row * rowSize;
+    }
+    bmpFile.seek(pos);
+    
+    // Itera su ciascun pixel della riga
+    for (int col = 0; col < bmpWidth; col++) {
+      // Leggi i 3 byte del pixel: BMP usa l'ordine B, G, R
+      uint8_t b = bmpFile.read();
+      uint8_t g = bmpFile.read();
+      uint8_t r = bmpFile.read();
+      
+      // Converti il colore in formato 16-bit 565 utilizzando il metodo della libreria
+      uint16_t color = tft.color565(r, g, b);
+      
+      // Disegna il pixel nel punto (x+col, y+row)
+      tft.drawPixel(x + col, y + row, color);
+    }
+  }
+  
+  bmpFile.close();
+  Serial.println("BMP disegnato!");
 }
