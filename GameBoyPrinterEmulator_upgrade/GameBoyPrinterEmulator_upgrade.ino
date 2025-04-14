@@ -217,6 +217,8 @@ void serialClock_ISR(void)
   digitalWrite(GBP_SI_PIN, txBit ? HIGH : LOW);
 }
 
+String outputBuffer = "";  // Buffer globale per salvare l'output
+
 
 /*******************************************************************************
   Main Setup and Loop
@@ -335,7 +337,11 @@ void loop()
       Serial.print(gbp_serial_io_dataBuff_max());
       Serial.println("B)");
       Serial.flush();
+      Serial.println("test outputBuffer:");
+      Serial.println(outputBuffer);
       digitalWrite(LED_STATUS_PIN, LOW);
+
+      outputBuffer = "";
 
 #ifdef GBP_FEATURE_PARSE_PACKET_MODE
       gbp_pkt_reset(&gbp_pktState);
@@ -449,14 +455,20 @@ inline void gbp_parse_packet_loop(void)
               const uint8_t data_8bit = tileBuff.tile[i];
               if (i == GBP_TILE_SIZE_IN_BYTE - 1)
               {
-                Serial.print((char)nibbleToCharLUT[(data_8bit >> 4) & 0xF]);
-                Serial.println((char)nibbleToCharLUT[(data_8bit >> 0) & 0xF]);  // use println on last byte to reduce serial calls
+                char hex[3];
+                hex[0] = nibbleToCharLUT[(data_8bit >> 4) & 0xF];
+                hex[1] = nibbleToCharLUT[(data_8bit >> 0) & 0xF];
+                hex[2] = '\0';
+                myPrint(hex);
               }
               else
               {
-                Serial.print((char)nibbleToCharLUT[(data_8bit >> 4) & 0xF]);
-                Serial.print((char)nibbleToCharLUT[(data_8bit >> 0) & 0xF]);
-                Serial.print((char)' ');
+                char hex[4];
+                hex[0] = nibbleToCharLUT[(data_8bit >> 4) & 0xF];
+                hex[1] = nibbleToCharLUT[(data_8bit >> 0) & 0xF];
+                hex[2] = ' ';
+                hex[3] = '\0';
+                myPrint(hex);
               }
             }
             Serial.flush();
@@ -473,14 +485,20 @@ inline void gbp_parse_packet_loop(void)
             const uint8_t data_8bit = gbp_pktbuff[i];
             if (i == gbp_pktbuffSize - 1)
             {
-              Serial.print((char)nibbleToCharLUT[(data_8bit >> 4) & 0xF]);
-              Serial.println((char)nibbleToCharLUT[(data_8bit >> 0) & 0xF]);  // use println on last byte to reduce serial calls
+              char hex[3];
+              hex[0] = nibbleToCharLUT[(data_8bit >> 4) & 0xF];
+              hex[1] = nibbleToCharLUT[(data_8bit >> 0) & 0xF];
+              hex[2] = '\0';
+              myPrint(hex);
             }
             else
             {
-              Serial.print((char)nibbleToCharLUT[(data_8bit >> 4) & 0xF]);
-              Serial.print((char)nibbleToCharLUT[(data_8bit >> 0) & 0xF]);
-              Serial.print((char)' ');
+              char hex[4];
+              hex[0] = nibbleToCharLUT[(data_8bit >> 4) & 0xF];
+              hex[1] = nibbleToCharLUT[(data_8bit >> 0) & 0xF];
+              hex[2] = ' ';
+              hex[3] = '\0';
+              myPrint(hex);
             }
           }
           Serial.flush();
@@ -501,43 +519,40 @@ inline void gbp_packet_capture_loop()
   static uint32_t pktByteIndex  = 0;
   static uint16_t pktDataLength = 0;
   const size_t dataBuffCount    = gbp_serial_io_dataBuff_getByteCount();
-  if (
-    ((pktByteIndex != 0) && (dataBuffCount > 0)) || ((pktByteIndex == 0) && (dataBuffCount >= 6)))
+  if (((pktByteIndex != 0) && (dataBuffCount > 0)) || ((pktByteIndex == 0) && (dataBuffCount >= 6)))
   {
     const char nibbleToCharLUT[] = "0123456789ABCDEF";
-    uint8_t data_8bit            = 0;
+    uint8_t data_8bit = 0;
     for (int i = 0; i < dataBuffCount; i++)
-    {  // Display the data payload encoded in hex
-      // Start of a new packet
+    {  
+      // Inizio di un nuovo pacchetto
       if (pktByteIndex == 0)
       {
         pktDataLength = gbp_serial_io_dataBuff_getByte_Peek(4);
         pktDataLength |= (gbp_serial_io_dataBuff_getByte_Peek(5) << 8) & 0xFF00;
-#if 0
-        Serial.print("// ");
-        Serial.print(pktTotalCount);
-        Serial.print(" : ");
-        Serial.println(gbpCommand_toStr(gbp_serial_io_dataBuff_getByte_Peek(2)));
-#endif
         digitalWrite(LED_STATUS_PIN, HIGH);
       }
-      // Print Hex Byte
+      // Lettura del byte e stampa in esadecimale
       data_8bit = gbp_serial_io_dataBuff_getByte();
-      Serial.print((char)nibbleToCharLUT[(data_8bit >> 4) & 0xF]);
-      Serial.print((char)nibbleToCharLUT[(data_8bit >> 0) & 0xF]);
-      // Splitting packets for convenience
+      
+      // Stampa il nibble alto
+      myPrint((char)nibbleToCharLUT[(data_8bit >> 4) & 0xF]);
+      // Stampa il nibble basso
+      myPrint((char)nibbleToCharLUT[(data_8bit >> 0) & 0xF]);
+      
+      // Controllo per suddividere i pacchetti
       if ((pktByteIndex > 5) && (pktByteIndex >= (9 + pktDataLength)))
       {
         digitalWrite(LED_STATUS_PIN, LOW);
-        Serial.println("");
+        myPrintln("");  // Aggiunge il ritorno a capo
         pktByteIndex = 0;
         pktTotalCount++;
       }
       else
       {
-        Serial.print((char)' ');
-        pktByteIndex++;  // Byte hex split counter
-        byteTotal++;     // Byte total counter
+        myPrint(' ');  // Stampa uno spazio
+        pktByteIndex++;  // Incrementa il contatore del byte nel pacchetto
+        byteTotal++;     // Incrementa il totale dei byte
       }
     }
     Serial.flush();
@@ -612,3 +627,25 @@ char printing(char byte_sent)  // this function prints bytes to the serial
   return byte_read;
 }
 #endif
+
+void myPrint(const char *s) {
+  Serial.print(s);
+  outputBuffer += s;  // Aggiunge la stringa al buffer
+}
+
+void myPrintln(const char *s) {
+  Serial.println(s);
+  outputBuffer += s;   // Aggiunge la stringa al buffer
+  outputBuffer += "\n";  // Inserisce un ritorno a capo
+}
+
+void myPrint(char c) {
+  Serial.print(c);
+  outputBuffer += c;
+}
+
+void myPrintln(char c) {
+  Serial.println(c);
+  outputBuffer += c;
+  outputBuffer += "\n";
+}
