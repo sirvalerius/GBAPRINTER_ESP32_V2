@@ -349,7 +349,7 @@ void loop()
       //Serial.println(outputBuffer);
       digitalWrite(LED_STATUS_PIN, LOW);
 
-      outputBuffer = "";
+      convertOutputBufferToBmp();
 
 #ifdef GBP_FEATURE_PARSE_PACKET_MODE
       gbp_pkt_reset(&gbp_pktState);
@@ -357,6 +357,8 @@ void loop()
       tileBuff.count = 0;
 #endif
 #endif
+
+      outputBuffer = "";
     }
   }
   last_millis = curr_millis;
