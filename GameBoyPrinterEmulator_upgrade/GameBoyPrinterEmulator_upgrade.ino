@@ -41,6 +41,7 @@ WebUSB WebUSBSerial(1, "herrzatacke.github.io/gb-printer-web/#/webusb");
 
 #include "gameboy_printer_protocol.h"
 #include "gbp_serial_io.h"
+#include "gbp_decoder.h"
 
 #if GBP_OUTPUT_RAW_PACKETS
 #define GBP_FEATURE_PACKET_CAPTURE_MODE
@@ -180,23 +181,6 @@ inline void gbp_packet_capture_loop();
 #ifdef GBP_FEATURE_PARSE_PACKET_MODE
 inline void gbp_parse_packet_loop();
 #endif
-
-/*******************************************************************************
-  Utility Functions
-*******************************************************************************/
-
-const char *gbpCommand_toStr(int val)
-{
-  switch (val)
-  {
-    case GBP_COMMAND_INIT: return "INIT";
-    case GBP_COMMAND_PRINT: return "PRNT";
-    case GBP_COMMAND_DATA: return "DATA";
-    case GBP_COMMAND_BREAK: return "BREK";
-    case GBP_COMMAND_INQUIRY: return "INQY";
-    default: return "?";
-  }
-}
 
 /*******************************************************************************
   Interrupt Service Routine
@@ -349,8 +333,6 @@ void loop()
       //Serial.println(outputBuffer);
       digitalWrite(LED_STATUS_PIN, LOW);
 
-      convertOutputBufferToBmp();
-
 #ifdef GBP_FEATURE_PARSE_PACKET_MODE
       gbp_pkt_reset(&gbp_pktState);
 #ifdef GBP_FEATURE_PARSE_PACKET_USE_DECOMPRESSOR
@@ -358,6 +340,7 @@ void loop()
 #endif
 #endif
 
+      convertOutputBufferToBmp(outputBuffer);
       outputBuffer = "";
     }
   }

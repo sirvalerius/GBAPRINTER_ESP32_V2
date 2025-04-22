@@ -18,7 +18,7 @@
    - Arduino.h, SPIFFS.h, stdio.h, stdlib.h
 */
 
-#include "GbpDecoder.h"
+#include "gbp_decoder.h"
 
 #include <Arduino.h>
 #include <SPIFFS.h>
@@ -122,7 +122,7 @@ void gbpdecoder_gotByte(const uint8_t byte)
 {
   if (gbp_pkt_processByte(&gbp_pktBuff, byte, gbp_pktbuff, &gbp_pktbuffSize, sizeof(gbp_pktbuff))) {
     
-    if (gbp_pktBuff.received == GBP_REC_GOT_PACKET) {
+    if (gbp_pktBuff.received == GBP_REC_GOT_PACKET || gbp_pktBuff.received == GBP_REC_GOT_PACKET_END) {
       
       pktCounter++;
       

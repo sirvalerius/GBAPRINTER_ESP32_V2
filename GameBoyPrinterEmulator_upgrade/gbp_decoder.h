@@ -3,13 +3,13 @@
 
 #include <Arduino.h>
 
-// Inizializza la logica di decodifica (es. eventualmente gbp_pkt_init, ecc.)
-void initGbpDecoder();
+// Inizializza la logica di decodifica e imposta verbose/display
+void initGbpDecoder(bool verbose, bool display);
 
-// Funzione che converte il buffer (stringa esadecimale) in byte e li manda al decoder
+// Converte la stringa esadecimale in byte e li passa al decoder
 void convertOutputBufferToBmp(const String &outputBuffer);
 
-// La funzione gbpdecoder_gotByte deve essere integrata o collegata al sistema di decodifica
+// Riceve un singolo byte e lo processa
 void gbpdecoder_gotByte(const uint8_t byte);
 
-#endif
+#endif // GBP_DECODER_H
