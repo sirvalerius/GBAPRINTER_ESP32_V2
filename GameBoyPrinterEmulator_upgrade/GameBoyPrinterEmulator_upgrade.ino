@@ -297,6 +297,8 @@ void setup(void)
   tft.println(F("// ---"));
   Serial.flush();
 
+  initGbpDecoder(false, /*display=*/true); //debug serial visualization option
+
   delay(1000);
 
   drawBMP("/main_screen.bmp", 0, 0);
