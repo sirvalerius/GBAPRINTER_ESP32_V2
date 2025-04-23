@@ -60,8 +60,11 @@ WebUSB WebUSBSerial(1, "herrzatacke.github.io/gb-printer-web/#/webusb");
 #include <SPI.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_ST7735.h>
+//Il display include anche un lettore di schede SD
+#include <SD.h>
 
 #include <SPIFFS.h>
+
 
 /* Gameboy Link Cable Mapping to Arduino Pin */
 // Note: Serial Clock Pin must be attached to an interrupt pin of the arduino
@@ -223,6 +226,26 @@ void setup(void)
   if (!SPIFFS.begin(true)) {
     Serial.println("SPIFFS mount failed!");
   }
+
+  Serial.println("Inizializzo SD card...");
+  if(!SD.begin(SD_CS_PIN)){
+    Serial.println("Errore: impossibile inizializzare la SD card");
+    return;
+  }
+  Serial.println("SD card inizializzata con successo");
+
+  // Apro (o creo) il file in modalità write (sovrascrive se già esiste)
+  File file = SD.open("/hello_world.txt", FILE_WRITE);
+  if(!file){
+    Serial.println("Errore: non riesco ad aprire /hello_world.txt");
+    return;
+  }
+
+  // Scrivo la riga e chiudo
+  file.println("hello world");
+  file.close();
+
+  Serial.println("File scritto: /hello_world.txt → \"hello world\"");
 
   // Inizializzazione del display TFT
   Serial.println("Inizializzazione del display TFT");
