@@ -41,6 +41,7 @@ WebUSB WebUSBSerial(1, "herrzatacke.github.io/gb-printer-web/#/webusb");
 
 #include "gameboy_printer_protocol.h"
 #include "gbp_serial_io.h"
+#include "gbp_decoder.h"
 
 #if GBP_OUTPUT_RAW_PACKETS
 #define GBP_FEATURE_PACKET_CAPTURE_MODE
@@ -184,11 +185,17 @@ inline void gbp_packet_capture_loop();
 inline void gbp_parse_packet_loop();
 #endif
 
+#define RAW_STREAM_BUFFER_SIZE 8192  // 8 KB
+
+uint8_t rawStreamBuffer[RAW_STREAM_BUFFER_SIZE];  // Buffer per il flusso intero
+size_t rawStreamSize = 0;                         // Numero di byte attualmente raccolti
+bool isCapturing = false;                         // Flag: stiamo raccogliendo lo stream?
+
 /*******************************************************************************
   Utility Functions
 *******************************************************************************/
 
-const char *gbpCommand_toStr(int val)
+/* const char *gbpCommand_toStr(int val)
 {
   switch (val)
   {
@@ -199,7 +206,7 @@ const char *gbpCommand_toStr(int val)
     case GBP_COMMAND_INQUIRY: return "INQY";
     default: return "?";
   }
-}
+} */
 
 /*******************************************************************************
   Interrupt Service Routine
@@ -376,6 +383,7 @@ void loop()
       Serial.flush();
       //Serial.println("test outputBuffer:");
       //Serial.println(outputBuffer);
+      convertOutputBufferToBmp(outputBuffer);
       digitalWrite(LED_STATUS_PIN, LOW);
 
       outputBuffer = "";

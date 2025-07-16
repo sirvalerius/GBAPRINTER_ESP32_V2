@@ -33,7 +33,7 @@
 
 // Variabili interne al decoder
 static bool verbose_flag = false;   // Impostabile tramite initGbpDecoder()
-static bool display_flag = false;   // Se true, mostra una preview via VT100
+static bool display_flag = true;   // Se true, mostra una preview via VT100
 
 static uint8_t pktCounter = 0;
 static gbp_pkt_t gbp_pktBuff = { GBP_REC_NONE, 0 };
