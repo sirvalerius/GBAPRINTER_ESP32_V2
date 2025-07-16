@@ -239,8 +239,78 @@ void setup(void)
   // Wait for Serial to be ready
   while (!Serial) { ; }
 
-  if (!SPIFFS.begin(true)) {
+  delay(2000);
+
+  /* Attach ISR */
+  #ifdef GBP_FEATURE_USING_RISING_CLOCK_ONLY_ISR
+    attachInterrupt(digitalPinToInterrupt(GBP_SC_PIN), serialClock_ISR, RISING);  // attach interrupt handler
+  #else
+    attachInterrupt(digitalPinToInterrupt(GBP_SC_PIN), serialClock_ISR, CHANGE);  // attach interrupt handler
+  #endif
+
+  /* Setup */
+  gpb_serial_io_init(sizeof(gbp_serialIO_raw_buffer), gbp_serialIO_raw_buffer);
+
+  //Connect_to_printer();  //makes an attempt to switch in printer mode
+
+  /* Pins from gameboy link cable */
+  pinMode(GBP_SC_PIN, INPUT);
+  pinMode(GBP_SO_PIN, INPUT);
+  pinMode(GBP_SI_PIN, OUTPUT);
+
+  /* Default link serial out pin state */
+  digitalWrite(GBP_SI_PIN, LOW);
+
+  /* LED Indicator */
+  pinMode(LED_STATUS_PIN, OUTPUT);
+  digitalWrite(LED_STATUS_PIN, LOW);
+
+  /* Packet Parser */
+#ifdef GBP_FEATURE_PARSE_PACKET_MODE
+  gbp_pkt_init(&gbp_pktState);
+#endif
+
+#define VERSION_STRING "V3.2.1 (Copyright (C) 2022 Brian Khuu)"
+
+  /* Welcome Message */
+#ifdef GBP_FEATURE_PACKET_CAPTURE_MODE
+  Serial.println(F("// GAMEBOY PRINTER Packet Capture " VERSION_STRING));
+  Serial.println(F("// Note: Each byte is from each GBP packet is from the gameboy"));
+  Serial.println(F("//       except for the last two bytes which is from the printer"));
+  Serial.println(F("// JS Raw Packet Decoder: https://mofosyne.github.io/arduino-gameboy-printer-emulator/GameBoyPrinterDecoderJS/gameboy_printer_js_raw_decoder.html"));
+  tft.println(F("// GAMEBOY PRINTER Packet Capture " VERSION_STRING));
+  tft.println(F("// Note: Each byte is from each GBP packet is from the gameboy"));
+  tft.println(F("//       except for the last two bytes which is from the printer"));
+  tft.println(F("// JS Raw Packet Decoder: https://mofosyne.github.io/arduino-gameboy-printer-emulator/GameBoyPrinterDecoderJS/gameboy_printer_js_raw_decoder.html"));
+  Serial.flush();
+#endif
+#ifdef GBP_FEATURE_PARSE_PACKET_MODE
+  Serial.println(F("// GAMEBOY PRINTER Emulator " VERSION_STRING));
+  Serial.println(F("// Note: Each hex encoded line is a gameboy tile"));
+  Serial.println(F("// JS Decoder: https://mofosyne.github.io/arduino-gameboy-printer-emulator/GameBoyPrinterDecoderJS/gameboy_printer_js_decoder.html"));
+  tft.println(F("// GAMEBOY PRINTER Emulator " VERSION_STRING));
+  tft.println(F("// Note: Each hex encoded line is a gameboy tile"));
+  tft.println(F("// JS Decoder: https://mofosyne.github.io/arduino-gameboy-printer-emulator/GameBoyPrinterDecoderJS/gameboy_printer_js_decoder.html"));
+  Serial.flush();
+#endif
+  Serial.println(F("// --- GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007 ---"));
+  Serial.println(F("// This program comes with ABSOLUTELY NO WARRANTY;"));
+  Serial.println(F("// This is free software, and you are welcome to redistribute it"));
+  Serial.println(F("// under certain conditions. Refer to LICENSE file for detail."));
+  Serial.println(F("// ---"));
+  tft.println(F("// --- GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007 ---"));
+  tft.println(F("// This program comes with ABSOLUTELY NO WARRANTY;"));
+  tft.println(F("// This is free software, and you are welcome to redistribute it"));
+  tft.println(F("// under certain conditions. Refer to LICENSE file for detail."));
+  tft.println(F("// ---"));
+  Serial.flush();
+
+  delay(1000);
+
+   if (!SPIFFS.begin(true)) {
     Serial.println("SPIFFS mount failed!");
+  } else {
+    Serial.println("SPIFFS mount succeed!");
   }
 
   Serial.println("Inizializzo SD card...");
@@ -273,70 +343,6 @@ void setup(void)
   tft.setRotation(3);
   pinMode(TFT_LED_PIN, OUTPUT);
   digitalWrite(TFT_LED_PIN, HIGH);
-
-  //Connect_to_printer();  //makes an attempt to switch in printer mode
-
-  /* Pins from gameboy link cable */
-  pinMode(GBP_SC_PIN, INPUT);
-  pinMode(GBP_SO_PIN, INPUT);
-  pinMode(GBP_SI_PIN, OUTPUT);
-
-  /* Default link serial out pin state */
-  digitalWrite(GBP_SI_PIN, LOW);
-
-  /* LED Indicator */
-  pinMode(LED_STATUS_PIN, OUTPUT);
-  digitalWrite(LED_STATUS_PIN, LOW);
-
-  /* Setup */
-  gpb_serial_io_init(sizeof(gbp_serialIO_raw_buffer), gbp_serialIO_raw_buffer);
-
-  /* Attach ISR */
-#ifdef GBP_FEATURE_USING_RISING_CLOCK_ONLY_ISR
-  attachInterrupt(digitalPinToInterrupt(GBP_SC_PIN), serialClock_ISR, RISING);  // attach interrupt handler
-#else
-  attachInterrupt(digitalPinToInterrupt(GBP_SC_PIN), serialClock_ISR, CHANGE);  // attach interrupt handler
-#endif
-
-  /* Packet Parser */
-#ifdef GBP_FEATURE_PARSE_PACKET_MODE
-  gbp_pkt_init(&gbp_pktState);
-#endif
-
-#define VERSION_STRING "V3.2.1 (Copyright (C) 2022 Brian Khuu)"
-
-  /* Welcome Message */
-#ifdef GBP_FEATURE_PACKET_CAPTURE_MODE
-  Serial.println(F("// GAMEBOY PRINTER Packet Capture " VERSION_STRING));
-  Serial.println(F("// Note: Each byte is from each GBP packet is from the gameboy"));
-  Serial.println(F("//       except for the last two bytes which is from the printer"));
-  Serial.println(F("// JS Raw Packet Decoder: https://mofosyne.github.io/arduino-gameboy-printer-emulator/GameBoyPrinterDecoderJS/gameboy_printer_js_raw_decoder.html"));
-  tft.println(F("// GAMEBOY PRINTER Packet Capture " VERSION_STRING));
-  tft.println(F("// Note: Each byte is from each GBP packet is from the gameboy"));
-  tft.println(F("//       except for the last two bytes which is from the printer"));
-  tft.println(F("// JS Raw Packet Decoder: https://mofosyne.github.io/arduino-gameboy-printer-emulator/GameBoyPrinterDecoderJS/gameboy_printer_js_raw_decoder.html"));
-#endif
-#ifdef GBP_FEATURE_PARSE_PACKET_MODE
-  Serial.println(F("// GAMEBOY PRINTER Emulator " VERSION_STRING));
-  Serial.println(F("// Note: Each hex encoded line is a gameboy tile"));
-  Serial.println(F("// JS Decoder: https://mofosyne.github.io/arduino-gameboy-printer-emulator/GameBoyPrinterDecoderJS/gameboy_printer_js_decoder.html"));
-  tft.println(F("// GAMEBOY PRINTER Emulator " VERSION_STRING));
-  tft.println(F("// Note: Each hex encoded line is a gameboy tile"));
-  tft.println(F("// JS Decoder: https://mofosyne.github.io/arduino-gameboy-printer-emulator/GameBoyPrinterDecoderJS/gameboy_printer_js_decoder.html"));
-#endif
-  Serial.println(F("// --- GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007 ---"));
-  Serial.println(F("// This program comes with ABSOLUTELY NO WARRANTY;"));
-  Serial.println(F("// This is free software, and you are welcome to redistribute it"));
-  Serial.println(F("// under certain conditions. Refer to LICENSE file for detail."));
-  Serial.println(F("// ---"));
-  tft.println(F("// --- GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007 ---"));
-  tft.println(F("// This program comes with ABSOLUTELY NO WARRANTY;"));
-  tft.println(F("// This is free software, and you are welcome to redistribute it"));
-  tft.println(F("// under certain conditions. Refer to LICENSE file for detail."));
-  tft.println(F("// ---"));
-  Serial.flush();
-
-  delay(1000);
 
   drawBMP("/main_screen.bmp", 0, 0);
 }  // setup()
