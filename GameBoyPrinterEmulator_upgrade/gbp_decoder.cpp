@@ -32,7 +32,7 @@
 #include "gbp_bmp.h"
 
 // Variabili interne al decoder
-static bool verbose_flag = false;   // Impostabile tramite initGbpDecoder()
+static bool verbose_flag = true;   // Impostabile tramite initGbpDecoder()
 static bool display_flag = true;   // Se true, mostra una preview via VT100
 
 static uint8_t pktCounter = 0;

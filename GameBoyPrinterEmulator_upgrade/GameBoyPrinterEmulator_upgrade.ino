@@ -36,6 +36,10 @@ WebUSB WebUSBSerial(1, "herrzatacke.github.io/gb-printer-web/#/webusb");
 #define GBP_OUTPUT_RAW_PACKETS     true   // by default, packets are parsed. if enabled, output will change to raw data packets for parsing and decompressing later
 #define GBP_USE_PARSE_DECOMPRESSOR false  // embedded decompressor can be enabled for use with parse mode but it requires fast hardware (SAMD21, SAMD51, ESP8266, ESP32)
 
+#define GBP_PREVIEW_BMP false
+#define GBP_SAVE_BMP false
+#define GBP_SAVE_STREAM false
+
 #include <stdint.h>  // uint8_t
 #include <stddef.h>  // size_t
 
@@ -50,6 +54,22 @@ WebUSB WebUSBSerial(1, "herrzatacke.github.io/gb-printer-web/#/webusb");
 #if GBP_USE_PARSE_DECOMPRESSOR
 #define GBP_FEATURE_PARSE_PACKET_USE_DECOMPRESSOR
 #endif
+#endif
+
+#if GBP_PREVIEW_BMP
+#define GBP_PREVIEW_MODE
+#endif
+
+#if GBP_SAVE_BMP
+#define GBP_SAVE_MODE
+#endif
+
+#if GBP_SAVE_STREAM
+#define GBP_SAVE_STREAM_MODE
+#endif
+
+#if SD_CARD
+#define SD_CARD_MODE
 #endif
 
 #ifdef GBP_FEATURE_PARSE_PACKET_MODE
@@ -381,7 +401,7 @@ void loop()
       Serial.print(gbp_serial_io_dataBuff_max());
       Serial.println("B)");
       Serial.flush();
-      //convertOutputBufferToBmp(outputBuffer);                            //TODO Logica di gestione immagine termine stream
+      convertOutputBufferToBmp(outputBuffer);                            //TODO Logica di gestione immagine termine stream
       digitalWrite(LED_STATUS_PIN, LOW);
 
       outputBuffer = "";
